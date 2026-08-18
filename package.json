@@ -1,0 +1,33 @@
+{
+  "name": "cffr-mt",
+  "version": "1.0.0",
+  "description": "A web-based Campus Facility Fault Report and Maintenance Tracking System.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haozhehe/CFFR-MT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/haozhehe/CFFR-MT/issues"
+  },
+  "homepage": "https://github.com/haozhehe/CFFR-MT#readme",
+  "dependencies": {
+    "next": "^16.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.1"
+  }
+}
