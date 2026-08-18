@@ -13,3 +13,13 @@ Styling: CSS
 Version control: GitHub
 AI-assisted coding: GitHub Copilot
 Testing: Playwright
+
+To set up locally:
+located to your file dir of where the json files is located /.../CFFR-MT
+cd " "
+run "npm install"
+then "npm run dev"
+then open localhost:3000 from your browser
+
+Check if build correctly "npm run build"
+stop the server "Ctrl + C"
