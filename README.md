@@ -23,3 +23,9 @@ then open localhost:3000 from your browser
 
 Check if build correctly "npm run build"
 stop the server "Ctrl + C"
+
+
+Testing Admin Login Details:
+Email: admin@campus.edu
+Username: admin
+Password: admin
