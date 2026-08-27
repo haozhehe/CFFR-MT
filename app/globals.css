@@ -169,6 +169,13 @@ body {
   cursor: pointer;
 }
 
+.login-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 input,
 select,
 textarea {

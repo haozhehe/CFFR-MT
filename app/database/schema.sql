@@ -25,3 +25,12 @@ CREATE TABLE IF NOT EXISTS technicians (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (assigned_report) REFERENCES reports(id)
 );
+
+INSERT OR IGNORE INTO users (id, username, email, password_hash, role)
+VALUES (
+    1,
+    'admin',
+    'admin@campus.edu',
+    '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
+    'admin'
+);
