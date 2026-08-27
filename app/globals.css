@@ -26,6 +26,10 @@ body {
   background: #0f172a;
 }
 
+.login-sidebar {
+  flex: 0 0 40%;
+}
+
 .sidebar-header {
   margin: 0 8px 28px;
 }
@@ -35,6 +39,7 @@ body {
   color: white;
   font-size: 21px;
   line-height: 1.2;
+  min-height: 28px;
 }
 
 .sidebar-header p {
@@ -42,6 +47,7 @@ body {
   color: #94a3b8;
   font-size: 11px;
   letter-spacing: 0.04em;
+  min-height: 14px;
 }
 
 .sidebar-nav {
@@ -82,6 +88,85 @@ body {
 .page-content {
   flex: 1;
   min-width: 0;
+}
+
+.login-page-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 48px 32px;
+  background: #f8fafc;
+}
+
+.login-panel {
+  width: min(100%, 460px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  padding: 32px 28px;
+  margin: 0 auto;
+}
+
+.login-title {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  color: #111827;
+  font-weight: 700;
+}
+
+.login-subtitle {
+  margin: 0 0 18px;
+  color: #6b7280;
+  font-size: 0.96rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #111827;
+}
+
+.field-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.login-form input:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.18);
+  border-color: #2563eb;
+}
+
+.login-button {
+  margin-top: 8px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 input,
@@ -167,6 +252,27 @@ a {
 }
 
 @media (max-width: 800px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex: 0 0 100%;
+  }
+
+  .login-page-shell {
+    flex-direction: column;
+  }
+
+  .login-sidebar {
+    flex: 0 0 auto;
+    min-height: 160px;
+  }
+
+  .login-content-area {
+    padding: 24px 18px;
+  }
+
   .role-grid {
     grid-template-columns: 1fr;
   }
