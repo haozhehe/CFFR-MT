@@ -1,3 +1,4 @@
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata = {
@@ -6,7 +7,7 @@ export const metadata = {
     "Campus Facility Fault Reporting and Maintenance Tracking System",
 };
 
-const requirement = "";
+const adminAccess = false;
 
 export default function RootLayout({ children }) {
   return (
@@ -19,12 +20,30 @@ export default function RootLayout({ children }) {
               <p>Campus Maintenance</p>
             </header>
             <nav className="sidebar-nav" aria-label="Facility QA sections">
-              <button type="button"><span aria-hidden="true" />Temp</button>
-              <button type="button"><span aria-hidden="true" />Temp</button>
-              <button type="button"><span aria-hidden="true" />Temp</button>
-              <button type="button"><span aria-hidden="true" />Temp</button>
-              {requirement && (
-                <button type="button"><span aria-hidden="true" />Admin</button>
+              <Link href="/">
+                <span aria-hidden="true" />
+                Temp
+              </Link>
+
+              <Link href="/">
+                <span aria-hidden="true" />
+                Temp
+              </Link>
+
+              <Link href="/">
+                <span aria-hidden="true" />
+                Temp
+              </Link>
+
+              <Link href="/">
+                <span aria-hidden="true" />
+                Temp
+              </Link>
+              {adminAccess && (
+                <Link href="/">
+                  <span aria-hidden="true" />
+                  Admin
+                </Link>
               )}
             </nav>
           </aside>
