@@ -19,27 +19,56 @@ export default function NavShell({ children }) {
 
         {!isLoginRoute && (
           <nav className="sidebar-nav" aria-label="Facility QA sections">
-            <Link href="/">
+            <Link
+              href="/student_staff/dashboard"
+              className={
+                pathname === '/student_staff/dashboard'
+                  ? 'active-nav-link'
+                  : ''
+              }
+            >
               <span aria-hidden="true" />
-              Temp
+              Dashboard
             </Link>
 
-            <Link href="/">
+            <Link
+              href="/student_staff/submit_fault"
+              className={
+                pathname === '/student_staff/submit_fault'
+                  ? 'active-nav-link'
+                  : ''
+              }
+            >
               <span aria-hidden="true" />
-              Temp
+              Report a Fault
             </Link>
 
-            <Link href="/">
+            <Link
+              href="/student_staff/report_details"
+              className={
+                pathname === '/student_staff/report_details'
+                  ? 'active-nav-link'
+                  : ''
+              }
+            >
               <span aria-hidden="true" />
-              Temp
+              My Reports
             </Link>
 
-            <Link href="/">
+            <Link
+              href="/student_staff/notifications"
+              className={
+                pathname === '/student_staff/notifications'
+                  ? 'active-nav-link'
+                  : ''
+              }
+            >
               <span aria-hidden="true" />
-              Temp
+              Notifications
             </Link>
+
             {adminAccess && (
-              <Link href="/">
+              <Link href="/admin_maintenance/admin_dashboard">
                 <span aria-hidden="true" />
                 Admin
               </Link>
