@@ -157,6 +157,29 @@ body {
   border-color: #2563eb;
 }
 
+.login-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.login-helper-text {
+  color: #6b7280;
+}
+
+.login-link {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
 .login-button {
   margin-top: 8px;
   border: none;

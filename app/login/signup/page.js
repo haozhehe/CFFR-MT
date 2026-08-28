@@ -1,44 +1,119 @@
-export default function Home() {
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!formData.username || !formData.email || !formData.password) {
+      setError('Please complete all fields.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.error) {
+      setError(result.error || 'Unable to create your account.');
+      return;
+    }
+
+    setError('');
+    router.push('/login/login');
+  };
+
   return (
-    <main className="landing-page">
-      <section className="hero">
-        <div className="project-label">
-          SOFTWARE QUALITY ASSURANCE PROJECT
+    <div className="login-panel">
+      <div className="login-title">Create account</div>
+      <p className="login-subtitle">Join the Campus Facility Fault Reporting System</p>
+
+      <form className="login-form" onSubmit={handleSubmit}>
+        <label>
+          <span className="field-label">Username</span>
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </label>
+
+        <label>
+          <span className="field-label">Email</span>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+        </label>
+
+        <label>
+          <span className="field-label">Password</span>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+        </label>
+
+        <label>
+          <span className="field-label">Confirm password</span>
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+          />
+        </label>
+
+        {error && <p className="login-error">{error}</p>}
+
+        <button type="submit" className="login-button">
+          Sign up
+        </button>
+
+        <div className="login-actions">
+          <span className="login-helper-text">Already have an account?</span>
+          <Link href="/login/login" className="login-link">
+            Sign in
+          </Link>
         </div>
-
-        <h1>Campus Facility Fault Reporting System</h1>
-
-        <p>
-          A prototype system for reporting, tracking and managing facility
-          maintenance issues across campus.
-        </p>
-
-        <div className="role-grid">
-          <div className="role-card">
-            <h2>Student / Staff</h2>
-            <p>
-              Submit facility faults and monitor the progress of submitted
-              reports.
-            </p>
-          </div>
-
-          <div className="role-card">
-            <h2>Maintenance</h2>
-            <p>
-              Review reported faults, assign technicians and update repair
-              progress.
-            </p>
-          </div>
-
-          <div className="role-card">
-            <h2>Administrator</h2>
-            <p>
-              Monitor maintenance activity, statistics and user access.
-            </p>
-          </div>
-        </div>
-
-      </section>
-    </main>
+      </form>
+    </div>
   );
 }
