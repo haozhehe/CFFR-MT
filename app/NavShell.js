@@ -13,8 +13,8 @@ export default function NavShell({ children }) {
     <div className="app-shell">
       <aside className={isLoginRoute ? 'sidebar login-sidebar' : 'sidebar'} aria-label={isLoginRoute ? 'Login sidebar' : 'Main navigation'}>
         <header className="sidebar-header">
-          <h1>{isLoginRoute ? '' : 'FACILITY QA'}</h1>
-          <p>{isLoginRoute ? '' : 'Campus Maintenance'}</p>
+          <h1>{isLoginRoute ? 'FACILITY QA' : 'FACILITY QA'}</h1>
+          <p>{isLoginRoute ? 'Campus Maintenance' : 'Campus Maintenance'}</p>
         </header>
 
         {!isLoginRoute && (

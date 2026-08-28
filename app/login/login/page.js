@@ -37,6 +37,7 @@ export default function LoginPage() {
     }
 
     setError('');
+    window.localStorage.setItem('isLoggedIn', 'true');
     router.push('/student_staff/dashboard');
   };
 
@@ -46,15 +47,6 @@ export default function LoginPage() {
       <p className="login-subtitle">Welcome back</p>
 
       <form className="login-form" onSubmit={handleSubmit}>
-        <label>
-          <span className="field-label">Email</span>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </label>
 
         <label>
           <span className="field-label">Username</span>
@@ -62,6 +54,16 @@ export default function LoginPage() {
             type="text"
             name="username"
             value={formData.username}
+            onChange={handleChange}
+          />
+        </label>
+
+        <label>
+          <span className="field-label">Email</span>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
             onChange={handleChange}
           />
         </label>
