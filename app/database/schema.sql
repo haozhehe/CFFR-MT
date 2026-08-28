@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS reports (
     user_id INTEGER NOT NULL,
     description TEXT NOT NULL,
     location TEXT NOT NULL,
+    image_path TEXT,
     status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'assigned', 'in_progress', 'resolved', 'closed')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
