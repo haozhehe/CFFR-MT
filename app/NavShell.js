@@ -79,6 +79,18 @@ export default function NavShell({ children }) {
               Maintenance Queue
             </Link>
 
+            <Link
+              href="/admin_maintenance/admin_dashboard"
+              className={
+                pathname === '/admin_maintenance/admin_dashboard'
+                  ? 'active-nav-link'
+                  : ''
+              }
+            >
+              <span aria-hidden="true" />
+              Admin
+            </Link>
+
             {adminAccess && (
               <Link href="/admin_maintenance/admin_dashboard">
                 <span aria-hidden="true" />
