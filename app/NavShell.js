@@ -67,6 +67,18 @@ export default function NavShell({ children }) {
               Notifications
             </Link>
 
+            <Link
+              href="/admin_maintenance/maintenance_queue"
+              className={
+                pathname === '/admin_maintenance/maintenance_queue'
+                  ? 'active-nav-link'
+                  : ''
+              }
+            >
+              <span aria-hidden="true" />
+              Maintenance Queue
+            </Link>
+
             {adminAccess && (
               <Link href="/admin_maintenance/admin_dashboard">
                 <span aria-hidden="true" />
