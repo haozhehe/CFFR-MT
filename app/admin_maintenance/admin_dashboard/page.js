@@ -1,3 +1,4 @@
+// MODIFIED: added a descriptive, accessible <caption> (visually hidden) to the reports table
 import Database from 'better-sqlite3';
 import path from 'node:path';
 
@@ -273,7 +274,12 @@ export default function AdminDashboard() {
               No fault reports have been submitted yet.
             </div>
           ) : (
-            <table className="admin-report-table">
+            <table className="admin-report-table" aria-label="Recent facility fault reports">
+              {/* MODIFIED: accessible <caption> added for screen readers; visually hidden via .sr-only CSS */}
+              <caption className="sr-only">
+                Most recently submitted facility reports with status and technician assignment.
+              </caption>
+
               <thead>
                 <tr>
                   <th>Report</th>
