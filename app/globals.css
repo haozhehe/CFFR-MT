@@ -551,3 +551,183 @@ a {
 /* ========================================
    End of ADMIN DASHBOARD
    ======================================== */
+
+   /* ========================================
+   MAINTENANCE QUEUE
+   ======================================== */
+
+.maintenance-filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 18px;
+  margin-bottom: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.maintenance-search-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.maintenance-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.maintenance-search-group label,
+.maintenance-filter-group label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.maintenance-search-group input,
+.maintenance-filter-group select {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.maintenance-search-group input:focus,
+.maintenance-filter-group select:focus,
+.maintenance-inline-form select:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: #2563eb;
+}
+
+.maintenance-primary-button,
+.maintenance-secondary-button,
+.maintenance-small-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.maintenance-primary-button {
+  min-height: 40px;
+  padding: 9px 16px;
+  background: #2563eb;
+  border: 1px solid #2563eb;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.maintenance-secondary-button {
+  min-height: 40px;
+  padding: 9px 16px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 13px;
+}
+
+.maintenance-primary-button:hover {
+  background: #1d4ed8;
+}
+
+.maintenance-secondary-button:hover {
+  background: #f1f5f9;
+}
+
+.maintenance-results-summary {
+  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.maintenance-user-cell,
+.maintenance-technician-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.maintenance-user-cell strong,
+.maintenance-technician-cell strong {
+  color: #334155;
+  font-size: 13px;
+}
+
+.maintenance-user-cell span,
+.maintenance-technician-cell span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.maintenance-unassigned {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.maintenance-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.maintenance-inline-form {
+  display: flex;
+  gap: 6px;
+}
+
+.maintenance-inline-form select {
+  flex: 1;
+  min-width: 130px;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  color: #334155;
+  font-size: 11px;
+}
+
+.maintenance-small-button {
+  padding: 6px 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 11px;
+}
+
+.maintenance-small-button:hover {
+  background: #dbeafe;
+}
+
+@media (max-width: 900px) {
+  .maintenance-filter-bar {
+    align-items: stretch;
+  }
+
+  .maintenance-search-group,
+  .maintenance-filter-group {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .maintenance-primary-button,
+  .maintenance-secondary-button {
+    flex: 1;
+  }
+}
+   /* ========================================
+   END OF MAINTENANCE QUEUE
+   ======================================== */
