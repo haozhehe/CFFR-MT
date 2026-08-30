@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-
-const STORAGE_KEY = 'cffrPrototypeReports';
-const MAX_DESCRIPTION_LENGTH = 1000;
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
+import { validateReport, validateImage, MAX_DESCRIPTION_LENGTH } from './lib/validation';
+import { useReportStorage } from './lib/useReportStorage';
 
 function formatDate(value) {
   const date = new Date(value);
@@ -23,45 +20,47 @@ function reportLocation(report) {
   return [report.building, report.roomNumber].filter(Boolean).join(' · ') || 'Location unavailable';
 }
 
+function generateReportId() {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+  return `FR-${timestamp}-${random}`;
+}
+
 export default function SubmitFaultPage() {
   const fileInputRef = useRef(null);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
-  const [reports, setReports] = useState([]);
   const [submittedReport, setSubmittedReport] = useState(null);
   const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    try {
-      const savedValue = window.localStorage.getItem(STORAGE_KEY);
-      const savedReports = savedValue ? JSON.parse(savedValue) : [];
-      setReports(Array.isArray(savedReports) ? savedReports : []);
-    } catch (storageError) {
-      console.error('Could not load prototype reports:', storageError);
-      setError('Saved reports could not be loaded. Check that browser storage is enabled.');
-    } finally {
-      setLoaded(true);
-    }
-  }, []);
+  const { reports, loaded, error: storageError, saveReport } = useReportStorage();
+
+  // Set storage error if it exists
+  if (storageError && !error) {
+    setError(storageError);
+  }
+
+  function resetForm() {
+    setLocation('');
+    setDescription('');
+    setImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
 
   function handleImageChange(event) {
     const selectedImage = event.target.files?.[0] || null;
     setError('');
 
-    if (selectedImage && !ALLOWED_IMAGE_TYPES.has(selectedImage.type)) {
-      event.target.value = '';
-      setImage(null);
-      setError('The optional image must be a JPG, JPEG, or PNG file.');
-      return;
-    }
-
-    if (selectedImage && selectedImage.size > MAX_IMAGE_SIZE) {
-      event.target.value = '';
-      setImage(null);
-      setError('The optional image must be 5 MB or smaller.');
-      return;
+    if (selectedImage) {
+      const imageError = validateImage(selectedImage);
+      if (imageError) {
+        event.target.value = '';
+        setImage(null);
+        setError(imageError);
+        return;
+      }
     }
 
     setImage(selectedImage);
@@ -71,48 +70,39 @@ export default function SubmitFaultPage() {
     event.preventDefault();
     setError('');
     setSubmittedReport(null);
+    setIsSubmitting(true);
 
-    const cleanLocation = location.trim();
-    const cleanDescription = description.trim();
-
-    if (!cleanLocation || !cleanDescription) {
-      setError('Location and description are required.');
+    // Validate form
+    const validationError = validateReport(location, description);
+    if (validationError) {
+      setError(validationError);
+      setIsSubmitting(false);
       return;
     }
 
-    if (cleanDescription.length > MAX_DESCRIPTION_LENGTH) {
-      setError(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer.`);
-      return;
-    }
-
+    // Create report object
     const report = {
-      id: `FR-${Date.now().toString(36).toUpperCase()}`,
+      id: generateReportId(),
       userId: 'prototype-user',
-      location: cleanLocation,
-      description: cleanDescription,
+      location: location.trim(),
+      description: description.trim(),
       imageName: image?.name || '',
       imageSize: image?.size || 0,
       status: 'open',
       createdAt: new Date().toISOString(),
     };
 
-    try {
-      const savedValue = window.localStorage.getItem(STORAGE_KEY);
-      const savedReports = savedValue ? JSON.parse(savedValue) : [];
-      const currentReports = Array.isArray(savedReports) ? savedReports : [];
-      const updatedReports = [report, ...currentReports];
+    // Save report
+    const { success, error: saveError } = saveReport(report);
 
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReports));
-      setReports(updatedReports);
+    if (success) {
       setSubmittedReport(report);
-      setLocation('');
-      setDescription('');
-      setImage(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (storageError) {
-      console.error('Could not save prototype report:', storageError);
-      setError('The report could not be saved. Check that browser storage is enabled.');
+      resetForm();
+    } else {
+      setError(saveError);
     }
+
+    setIsSubmitting(false);
   }
 
   return (
@@ -162,6 +152,7 @@ export default function SubmitFaultPage() {
               maxLength={120}
               placeholder="Example: Library, Level 2, Room L2-14"
               required
+              disabled={isSubmitting}
             />
           </label>
 
@@ -174,6 +165,7 @@ export default function SubmitFaultPage() {
               rows={8}
               placeholder="Describe the fault, what is affected, and any safety concern."
               required
+              disabled={isSubmitting}
             />
             <small className="character-count">{description.length}/{MAX_DESCRIPTION_LENGTH} characters</small>
           </label>
@@ -185,13 +177,17 @@ export default function SubmitFaultPage() {
               type="file"
               accept=".jpg,.jpeg,.png,image/jpeg,image/png"
               onChange={handleImageChange}
+              disabled={isSubmitting}
+              aria-label="Upload fault report image"
             />
             <small>JPG, JPEG, or PNG, up to 5 MB. This prototype records the filename only.</small>
             {image && <strong>Selected: {image.name}</strong>}
           </label>
 
           <div className="form-actions">
-            <button type="submit">Submit report</button>
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit report'}
+            </button>
           </div>
         </form>
 
@@ -237,11 +233,16 @@ export default function SubmitFaultPage() {
       </p>
 
       <style jsx>{`
-        .report-page{width:min(100%,1180px);min-height:100vh;margin:auto;padding:38px clamp(20px,3.5vw,48px) 52px;background:#f5f7fb;color:#172033}.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:22px}.eyebrow,.section-label{margin:0 0 7px;color:#2563eb;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}h1{margin:0;color:#0f172a;font-size:clamp(30px,4vw,42px);line-height:1.1}.page-header p:last-child{max-width:650px;margin:10px 0 0;color:#68758a;line-height:1.55}.back-button{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border:1px solid #ccd6e3;border-radius:8px;background:#fff;color:#344159;font-size:13px;font-weight:800;text-decoration:none}
-        .success-card{display:flex;gap:14px;margin-bottom:17px;padding:17px 19px;border:1px solid #a7f3d0;border-radius:13px;background:#ecfdf5;color:#065f46}.success-icon{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:#10b981;color:#fff;font-weight:900}.success-card h2{margin:0;font-size:16px}.success-card p{margin:4px 0 12px;font-size:13px}.success-card dl{display:flex;flex-wrap:wrap;gap:9px 25px;margin:0}.success-card dl div{display:flex;gap:6px}.success-card dt{font-size:11px;font-weight:700}.success-card dd{margin:0;font-size:11px}.error-message{margin-bottom:17px;padding:13px 15px;border:1px solid #fecaca;border-radius:9px;background:#fef2f2;color:#b91c1c;font-size:13px;font-weight:700}
-        .content-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(330px,.92fr);gap:19px;align-items:start}.panel{border:1px solid #dfe6ef;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(29,48,76,.04)}.form-panel{display:grid;gap:18px;padding:22px}.panel-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding-bottom:16px;border-bottom:1px solid #e8edf3}.panel-heading h2{margin:0;color:#172033;font-size:18px}.panel-heading>span{color:#8994a6;font-size:10px}.form-panel label{display:flex;flex-direction:column;gap:7px;color:#45536a;font-size:13px;font-weight:700}.form-panel input,.form-panel textarea{width:100%;padding:10px 11px;border:1px solid #cdd7e4;border-radius:8px;background:#fff;color:#26344b;font:inherit;font-size:14px}.form-panel textarea{min-height:165px;resize:vertical;line-height:1.5}.form-panel input:focus,.form-panel textarea:focus{border-color:#2563eb;outline:3px solid rgba(37,99,235,.14)}.character-count{align-self:flex-end;color:#8994a6}.image-field{padding:15px;border:1px dashed #aebdd0;border-radius:10px;background:#fafcff}.image-field input{padding:8px}.image-field small{color:#7b8798;font-weight:500}.image-field strong{color:#1d4ed8;font-size:12px}.form-actions{display:flex;justify-content:flex-end}.form-actions button{min-height:41px;padding:9px 17px;border:1px solid #1d4ed8;border-radius:8px;background:#2563eb;color:#fff;font-size:13px;font-weight:800;cursor:pointer}.form-actions button:hover{background:#1d4ed8}
-        .reports-panel{overflow:hidden}.reports-panel>.panel-heading{margin:0 21px;padding:20px 0 16px}.report-count{display:grid;place-items:center;min-width:32px;height:32px;padding:0 9px;border-radius:999px;background:#e8f0ff;color:#1d4ed8;font-size:12px}.report-list{display:grid}.report-item{padding:17px 21px;border-bottom:1px solid #edf1f5}.report-item:last-child{border-bottom:0}.report-topline{display:flex;justify-content:space-between;gap:12px}.report-topline>strong{color:#1d4ed8;font-size:11px}.report-topline>span{padding:4px 8px;border-radius:999px;background:#e8f0ff;color:#1d4ed8;font-size:9px;font-weight:900;text-transform:uppercase}.report-item h3{margin:9px 0 6px;color:#25334a;font-size:14px}.report-item>p{display:-webkit-box;overflow:hidden;margin:0;color:#68758a;font-size:12px;line-height:1.55;-webkit-box-orient:vertical;-webkit-line-clamp:3}.report-footer{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:#8a95a5;font-size:10px}.report-footer small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.empty-state{padding:34px 21px;color:#748095;text-align:center;font-size:12px}.empty-state strong{display:block;margin-bottom:7px;color:#26344b;font-size:14px}.empty-state p{margin:0;line-height:1.55}.prototype-note{margin:18px 0 0;color:#7b8798;font-size:11px;text-align:center}
-        @media(max-width:850px){.content-grid{grid-template-columns:1fr}}@media(max-width:620px){.report-page{padding:27px 17px 40px}.page-header{flex-direction:column}.back-button{width:100%}.success-card dl{display:grid;gap:6px}.panel-heading{flex-direction:column}.report-footer{flex-direction:column}.form-actions button{width:100%}}
+        .report-page{width:min(100%,1180px);min-height:100vh;margin:auto;padding:38px clamp(20px,3.5vw,48px) 52px;background:#f5f7fb;color:#172033}.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}.page-header>div{flex:1}.eyebrow{margin:0;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#7c8fa1}h1{margin:8px 0 12px;font-size:32px;font-weight:700;line-height:1.2}.page-header>p{margin:0;font-size:16px;color:#525f79}.back-button{padding:8px 16px;border:1px solid #dfe6ef;border-radius:8px;background:#fff;color:#172033;text-decoration:none;font-weight:500;transition:all 0.2s ease}.back-button:hover{border-color:#172033;background:#f5f7fb}
+        .success-card{display:flex;gap:14px;margin-bottom:17px;padding:17px 19px;border:1px solid #a7f3d0;border-radius:13px;background:#ecfdf5;color:#065f46}.success-icon{display:grid;place-items:center;min-width:32px;height:32px;border-radius:50%;background:#a7f3d0;font-size:18px;font-weight:700}.success-card h2{margin:0 0 8px;font-size:18px}.success-card p{margin:0 0 12px;font-size:14px}.success-card dl{margin:0;font-size:13px;display:grid;gap:6px}.success-card div{display:grid;grid-template-columns:auto 1fr;gap:12px}.success-card dt{font-weight:600}.success-card dd{margin:0;text-align:left}
+        .error-message{padding:12px 16px;margin-bottom:16px;border:1px solid #fecaca;border-radius:8px;background:#fef2f2;color:#991b1b;font-size:14px}
+        .content-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(330px,.92fr);gap:19px;align-items:start}.panel{border:1px solid #dfe6ef;border-radius:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1)}.form-panel{padding:24px}.panel-heading{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb}.panel-heading{display:flex;justify-content:space-between;align-items:flex-start}.panel-heading>div{flex:1}.section-label{margin:0;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#7c8fa1}.panel-heading h2{margin:8px 0 0;font-size:20px;font-weight:700}.panel-heading>span{font-size:12px;color:#7c8fa1;white-space:nowrap}label{display:grid;margin-bottom:20px;gap:8px}label>span{font-weight:500;color:#172033;font-size:14px}input[type="text"],textarea{padding:10px 12px;border:1px solid #dfe6ef;border-radius:8px;font-family:inherit;font-size:14px;color:#172033}input[type="text"]:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}input[type="text"]:disabled,textarea:disabled{background:#f5f7fb;cursor:not-allowed}textarea{resize:vertical}.character-count{font-size:12px;color:#7c8fa1;text-align:right}
+        .image-field small{font-size:12px;color:#7c8fa1;display:block}input[type="file"]{padding:8px;border:1px solid #dfe6ef;border-radius:8px;cursor:pointer}input[type="file"]:disabled{cursor:not-allowed;background:#f5f7fb}.image-field strong{display:block;margin-top:8px;font-size:14px;color:#059669}
+        .form-actions{display:grid;gap:12px;margin-top:28px}button[type="submit"]{padding:12px 24px;border:none;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer;transition:background 0.2s ease}button[type="submit"]:hover:not(:disabled){background:#2563eb}button[type="submit"]:disabled{background:#9ca3af;cursor:not-allowed;opacity:0.7}
+        .reports-panel{overflow:hidden}.reports-panel>.panel-heading{margin:0 21px;padding:20px 0 16px}.report-count{display:grid;place-items:center;min-width:32px;height:32px;padding:0 9px;border-radius:20px;background:#e5e7eb;font-size:13px;font-weight:600;color:#172033}
+        .empty-state{padding:32px 24px;text-align:center;color:#7c8fa1}.empty-state strong{display:block;margin-bottom:8px;color:#172033;font-size:16px}
+        .report-list{display:grid;gap:0}.report-item{padding:20px 24px;border-bottom:1px solid #e5e7eb;display:grid;gap:12px}.report-item:last-child{border-bottom:none}.report-topline{display:flex;justify-content:space-between;align-items:center}.report-topline strong{color:#172033;font-size:14px}.report-topline span{padding:4px 10px;border-radius:4px;background:#e5e7eb;color:#172033;font-size:12px;font-weight:500}.report-item h3{margin:0;font-size:16px;font-weight:600;color:#172033}.report-item p{margin:0;font-size:14px;color:#525f79;line-height:1.5}.report-footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#7c8fa1}.prototype-note{margin-top:24px;padding:12px;border-left:4px solid #fbbf24;background:#fffaed;color:#92400e;font-size:13px}
+        @media(max-width:850px){.content-grid{grid-template-columns:1fr}}@media(max-width:620px){.report-page{padding:27px 17px 40px}.page-header{flex-direction:column;gap:16px}.back-button{width:100%}.success-card{flex-direction:column}.panel-heading{flex-direction:column;gap:12px}}
       `}</style>
     </main>
   );
