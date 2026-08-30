@@ -146,10 +146,6 @@ export default function StudentDashboardPage() {
               <p className={styles.sectionLabel}>Your submissions</p>
               <h2 id="recent-reports-heading">Recent reports</h2>
             </div>
-            <Link className={styles.textLink} href="/student_staff/report_details">
-              View all reports
-              <span aria-hidden="true">→</span>
-            </Link>
           </div>
 
           <div className={styles.tableWrapper}>
@@ -168,9 +164,7 @@ export default function StudentDashboardPage() {
                 {recentReports.map((report) => (
                   <tr key={report.id}>
                     <td>
-                      <Link className={styles.reportId} href="/student_staff/report_details">
-                        {report.id}
-                      </Link>
+                      <span className={styles.reportId}>{report.id}</span>
                       <span className={styles.issueText}>{report.issue}</span>
                       <span className={styles.mobileLocation}>{report.location}</span>
                     </td>
@@ -207,14 +201,6 @@ export default function StudentDashboardPage() {
                 <div>
                   <strong>Report a new fault</strong>
                   <small>Submit location, priority and issue details</small>
-                </div>
-                <span className={styles.actionArrow} aria-hidden="true">→</span>
-              </Link>
-              <Link href="/student_staff/report_details">
-                <span className={styles.quickIcon} aria-hidden="true">≡</span>
-                <div>
-                  <strong>View my reports</strong>
-                  <small>Check report details and current status</small>
                 </div>
                 <span className={styles.actionArrow} aria-hidden="true">→</span>
               </Link>
