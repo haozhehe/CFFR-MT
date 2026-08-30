@@ -32,9 +32,9 @@ export default function NavShell({ children }) {
             </Link>
 
             <Link
-              href="/student_staff/submit_fault"
+              href="/student_staff/report_submitted"
               className={
-                pathname === '/student_staff/submit_fault'
+                pathname === '/student_staff/report_submitted'
                   ? 'active-nav-link'
                   : ''
               }
