@@ -32,6 +32,19 @@ export default function NavShell({ children }) {
             </Link>
 
             <Link
+              href="/student_staff/submit_fault"
+              className={
+                pathname === '/student_staff/submit_fault'
+                  ? 'active-nav-link'
+                  : ''
+              }
+              
+            >
+              <span aria-hidden="true" />
+              Submit a Fault
+            </Link>
+
+            <Link
               href="/student_staff/report_submitted"
               className={
                 pathname === '/student_staff/report_submitted'
@@ -40,13 +53,13 @@ export default function NavShell({ children }) {
               }
             >
               <span aria-hidden="true" />
-              Report a Fault
+              My Reports
             </Link>
 
             <Link
-              href="/student_staff/notifications"
+              href="/technician/notifications"
               className={
-                pathname === '/student_staff/notifications'
+                pathname === '/technician/notifications'
                   ? 'active-nav-link'
                   : ''
               }
