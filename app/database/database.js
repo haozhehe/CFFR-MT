@@ -35,10 +35,73 @@ export function insertUser({ username, email, password, role }) {
     .run(username, email, hashPassword(password), role);
 }
 
+export function insertTechnician({ userId, name, specialisation = null, assignedReport = null }) {
+  return db
+    .prepare(
+      `INSERT INTO technicians (user_id, name, specialisation, assigned_report)
+       VALUES (?, ?, ?, ?)`
+    )
+    .run(userId, name, specialisation, assignedReport);
+}
+
+export function createTechnicianAccount({ username, email, password, name, specialisation = null }) {
+  return db.transaction(() => {
+    const user = insertUser({
+      username,
+      email,
+      password,
+      role: 'technician',
+    });
+
+    insertTechnician({
+      userId: Number(user.lastInsertRowid),
+      name,
+      specialisation,
+      assignedReport: null,
+    });
+
+    return { id: Number(user.lastInsertRowid) };
+  })();
+}
+
 export function updateUserPassword(userId, plainPassword) {
   return db
     .prepare(`UPDATE users SET password_hash = ? WHERE id = ?`)
     .run(hashPassword(plainPassword), userId);
+}
+
+export function insertReport({ userId, description, location, imagePath = null, status = 'open' }) {
+  return db
+    .prepare(
+      `INSERT INTO reports (user_id, description, location, image_path, status, created_at)
+       VALUES (?, ?, ?, ?, ?, datetime('now'))`
+    )
+    .run(userId, description, location, imagePath, status);
+}
+
+export function getReportsForUser({ userId, role }) {
+  if (role && role !== 'student') {
+    return db
+      .prepare(
+        `SELECT r.id, r.user_id AS userId, r.description, r.location, r.image_path AS imagePath,
+                r.status, r.created_at AS createdAt, u.username, u.email, u.role
+         FROM reports r
+         INNER JOIN users u ON u.id = r.user_id
+         ORDER BY r.created_at DESC`
+      )
+      .all();
+  }
+
+  return db
+    .prepare(
+      `SELECT r.id, r.user_id AS userId, r.description, r.location, r.image_path AS imagePath,
+              r.status, r.created_at AS createdAt, u.username, u.email, u.role
+       FROM reports r
+       INNER JOIN users u ON u.id = r.user_id
+       WHERE r.user_id = ?
+       ORDER BY r.created_at DESC`
+    )
+    .all(userId);
 }
 
 export { hashPassword };

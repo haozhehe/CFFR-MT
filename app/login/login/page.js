@@ -38,7 +38,16 @@ export default function LoginPage() {
 
     setError('');
     window.localStorage.setItem('isLoggedIn', 'true');
-    router.push('/student_staff/dashboard');
+    window.localStorage.setItem('currentUser', JSON.stringify(result.user));
+
+    const destination =
+      result.user.role === 'admin'
+        ? '/admin_maintenance/admin_dashboard'
+        : result.user.role === 'technician'
+          ? '/technician/assigned'
+          : '/student_staff/dashboard';
+
+    router.push(destination);
   };
 
   return (

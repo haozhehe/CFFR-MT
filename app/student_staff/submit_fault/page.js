@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { validateReport, validateImage, MAX_DESCRIPTION_LENGTH } from './lib/validation';
-import { useReportStorage } from './lib/useReportStorage';
 
 function formatDate(value) {
   const date = new Date(value);
@@ -20,27 +19,56 @@ function reportLocation(report) {
   return [report.building, report.roomNumber].filter(Boolean).join(' · ') || 'Location unavailable';
 }
 
-function generateReportId() {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `FR-${timestamp}-${random}`;
-}
-
 export default function SubmitFaultPage() {
   const fileInputRef = useRef(null);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [submittedReport, setSubmittedReport] = useState(null);
+  const [reports, setReports] = useState([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const { reports, loaded, error: storageError, saveReport } = useReportStorage();
+  useEffect(() => {
+    const savedUser = window.localStorage.getItem('currentUser');
+    if (!savedUser) {
+      setError('You need to be logged in to submit a fault.');
+      setIsLoading(false);
+      return;
+    }
 
-  // Set storage error if it exists
-  if (storageError && !error) {
-    setError(storageError);
-  }
+    const parsedUser = JSON.parse(savedUser);
+    setCurrentUser(parsedUser);
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    async function loadReports() {
+      try {
+        const response = await fetch(`/api/reports?userId=${currentUser.id}&role=${currentUser.role}`);
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          setReports([]);
+          setError(data.error || 'Unable to load your reports.');
+          return;
+        }
+
+        setReports(Array.isArray(data.reports) ? data.reports : []);
+        setError('');
+      } catch (loadError) {
+        setReports([]);
+        setError('Unable to load reports from the database.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadReports();
+  }, [currentUser]);
 
   function resetForm() {
     setLocation('');
@@ -66,13 +94,12 @@ export default function SubmitFaultPage() {
     setImage(selectedImage);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setError('');
     setSubmittedReport(null);
     setIsSubmitting(true);
 
-    // Validate form
     const validationError = validateReport(location, description);
     if (validationError) {
       setError(validationError);
@@ -80,29 +107,52 @@ export default function SubmitFaultPage() {
       return;
     }
 
-    // Create report object
-    const report = {
-      id: generateReportId(),
-      userId: 'prototype-user',
-      location: location.trim(),
-      description: description.trim(),
-      imageName: image?.name || '',
-      imageSize: image?.size || 0,
-      status: 'open',
-      createdAt: new Date().toISOString(),
-    };
-
-    // Save report
-    const { success, error: saveError } = saveReport(report);
-
-    if (success) {
-      setSubmittedReport(report);
-      resetForm();
-    } else {
-      setError(saveError);
+    if (!currentUser) {
+      setError('You need to be logged in to submit a fault.');
+      setIsSubmitting(false);
+      return;
     }
 
-    setIsSubmitting(false);
+    try {
+      const formData = new FormData();
+      formData.append('userId', String(currentUser.id));
+      formData.append('location', location.trim());
+      formData.append('description', description.trim());
+
+      if (image) {
+        formData.append('image', image);
+      }
+
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        setError(data.error || 'Unable to save the report.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const savedReport = {
+        id: data.report?.id,
+        location: location.trim(),
+        description: description.trim(),
+        status: 'open',
+        createdAt: new Date().toISOString(),
+        imagePath: image?.name || null,
+      };
+
+      setSubmittedReport(savedReport);
+      setReports((prev) => [savedReport, ...prev]);
+      resetForm();
+    } catch (submitError) {
+      setError('Unable to save the report to the database.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -111,7 +161,7 @@ export default function SubmitFaultPage() {
         <div>
           <p className="eyebrow">Student / Staff portal</p>
           <h1>Report a Facility Fault</h1>
-          <p>Submit a fault and review your saved prototype reports on this page.</p>
+          <p>Submit a fault and view your saved reports from the database.</p>
         </div>
         <Link href="/student_staff/dashboard" className="back-button">Back to dashboard</Link>
       </header>
@@ -121,7 +171,7 @@ export default function SubmitFaultPage() {
           <span className="success-icon" aria-hidden="true">&#10003;</span>
           <div>
             <h2>Report submitted successfully</h2>
-            <p><strong>{submittedReport.id}</strong> was saved in this browser.</p>
+            <p><strong>FR-{submittedReport.id}</strong> was saved to the database.</p>
             <dl>
               <div><dt>Location</dt><dd>{submittedReport.location}</dd></div>
               <div><dt>Status</dt><dd>Open</dd></div>
@@ -194,18 +244,18 @@ export default function SubmitFaultPage() {
         <section className="panel reports-panel" aria-labelledby="saved-reports-heading">
           <div className="panel-heading">
             <div>
-              <p className="section-label">Prototype history</p>
+              <p className="section-label">Database history</p>
               <h2 id="saved-reports-heading">My saved reports</h2>
             </div>
             <strong className="report-count">{reports.length}</strong>
           </div>
 
-          {!loaded && <p className="empty-state">Loading reports...</p>}
+          {isLoading && <p className="empty-state">Loading reports...</p>}
 
-          {loaded && reports.length === 0 && (
+          {!isLoading && reports.length === 0 && (
             <div className="empty-state">
               <strong>No reports submitted yet</strong>
-              <p>Your submitted reports will appear here and remain after refreshing the page.</p>
+              <p>Your submitted reports will appear here once they are saved to the database.</p>
             </div>
           )}
 
@@ -213,24 +263,20 @@ export default function SubmitFaultPage() {
             {reports.map((report) => (
               <article className="report-item" key={report.id}>
                 <div className="report-topline">
-                  <strong>{report.id}</strong>
+                  <strong>FR-{report.id}</strong>
                   <span>{report.status || 'open'}</span>
                 </div>
                 <h3>{reportLocation(report)}</h3>
                 <p>{report.description}</p>
                 <div className="report-footer">
                   <time>{formatDate(report.createdAt)}</time>
-                  <small>{report.imageName ? `Image: ${report.imageName}` : 'No image'}</small>
+                  <small>{report.imagePath ? `Image: ${report.imagePath}` : 'No image'}</small>
                 </div>
               </article>
             ))}
           </div>
         </section>
       </div>
-
-      <p className="prototype-note">
-        Prototype only: reports are stored in this browser, not in the shared SQLite database.
-      </p>
 
       <style jsx>{`
         .report-page{width:min(100%,1180px);min-height:100vh;margin:auto;padding:38px clamp(20px,3.5vw,48px) 52px;background:#f5f7fb;color:#172033}.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}.page-header>div{flex:1}.eyebrow{margin:0;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#7c8fa1}h1{margin:8px 0 12px;font-size:32px;font-weight:700;line-height:1.2}.page-header>p{margin:0;font-size:16px;color:#525f79}.back-button{padding:8px 16px;border:1px solid #dfe6ef;border-radius:8px;background:#fff;color:#172033;text-decoration:none;font-weight:500;transition:all 0.2s ease}.back-button:hover{border-color:#172033;background:#f5f7fb}
@@ -241,7 +287,7 @@ export default function SubmitFaultPage() {
         .form-actions{display:grid;gap:12px;margin-top:28px}button[type="submit"]{padding:12px 24px;border:none;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer;transition:background 0.2s ease}button[type="submit"]:hover:not(:disabled){background:#2563eb}button[type="submit"]:disabled{background:#9ca3af;cursor:not-allowed;opacity:0.7}
         .reports-panel{overflow:hidden}.reports-panel>.panel-heading{margin:0 21px;padding:20px 0 16px}.report-count{display:grid;place-items:center;min-width:32px;height:32px;padding:0 9px;border-radius:20px;background:#e5e7eb;font-size:13px;font-weight:600;color:#172033}
         .empty-state{padding:32px 24px;text-align:center;color:#7c8fa1}.empty-state strong{display:block;margin-bottom:8px;color:#172033;font-size:16px}
-        .report-list{display:grid;gap:0}.report-item{padding:20px 24px;border-bottom:1px solid #e5e7eb;display:grid;gap:12px}.report-item:last-child{border-bottom:none}.report-topline{display:flex;justify-content:space-between;align-items:center}.report-topline strong{color:#172033;font-size:14px}.report-topline span{padding:4px 10px;border-radius:4px;background:#e5e7eb;color:#172033;font-size:12px;font-weight:500}.report-item h3{margin:0;font-size:16px;font-weight:600;color:#172033}.report-item p{margin:0;font-size:14px;color:#525f79;line-height:1.5}.report-footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#7c8fa1}.prototype-note{margin-top:24px;padding:12px;border-left:4px solid #fbbf24;background:#fffaed;color:#92400e;font-size:13px}
+        .report-list{display:grid;gap:0}.report-item{padding:20px 24px;border-bottom:1px solid #e5e7eb;display:grid;gap:12px}.report-item:last-child{border-bottom:none}.report-topline{display:flex;justify-content:space-between;align-items:center}.report-topline strong{color:#172033;font-size:14px}.report-topline span{padding:4px 10px;border-radius:4px;background:#e5e7eb;color:#172033;font-size:12px;font-weight:500}.report-item h3{margin:0;font-size:16px;font-weight:600;color:#172033}.report-item p{margin:0;font-size:14px;color:#525f79;line-height:1.5}.report-footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#7c8fa1}.prototype-note{margin-top:24px;padding:12px;border-left:4px solid #10b981;background:#ecfdf5;color:#065f46;font-size:13px}
         @media(max-width:850px){.content-grid{grid-template-columns:1fr}}@media(max-width:620px){.report-page{padding:27px 17px 40px}.page-header{flex-direction:column;gap:16px}.back-button{width:100%}.success-card{flex-direction:column}.panel-heading{flex-direction:column;gap:12px}}
       `}</style>
     </main>

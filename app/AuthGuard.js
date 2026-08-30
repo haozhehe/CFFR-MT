@@ -9,9 +9,13 @@ export default function AuthGuard({ children }) {
 
   useEffect(() => {
     const loggedIn = window.localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loggedIn);
+    const savedUser = window.localStorage.getItem('currentUser');
+    const hasUser = savedUser && savedUser !== 'undefined';
+    const authenticated = loggedIn && hasUser;
 
-    if (!loggedIn) {
+    setIsLoggedIn(authenticated);
+
+    if (!authenticated) {
       router.replace('/login/login');
     }
   }, [router]);

@@ -45,18 +45,6 @@ export default function NavShell({ children }) {
             </Link>
 
             <Link
-              href="/student_staff/report_submitted"
-              className={
-                pathname === '/student_staff/report_submitted'
-                  ? 'active-nav-link'
-                  : ''
-              }
-            >
-              <span aria-hidden="true" />
-              My Reports
-            </Link>
-
-            <Link
               href="/technician/notifications"
               className={
                 pathname === '/technician/notifications'

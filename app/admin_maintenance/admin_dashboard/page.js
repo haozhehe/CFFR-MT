@@ -1,6 +1,7 @@
 // MODIFIED: added a descriptive, accessible <caption> (visually hidden) to the reports table
 import Database from 'better-sqlite3';
 import path from 'node:path';
+import TechnicianForm from './TechnicianForm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -392,6 +393,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </section>
+
+      <TechnicianForm />
     </div>
   );
 }
