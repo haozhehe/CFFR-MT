@@ -63,74 +63,7 @@ function formatDate(dateValue) {
   });
 }
 
-/*
- * For the current prototype we use technicianId from
- * the URL so the page can be tested without assuming
- * how your authentication system stores the logged-in user.
- *
- * Example:
- * /technician/notifications?technicianId=1
- *
- * If no technicianId is provided, the first technician
- * in the database is used.
- */
-function getTechnician(technicianId) {
-  const db = openDatabase({
-    readonly: true,
-  });
-
-  try {
-    let technician;
-
-    if (technicianId) {
-      technician = db
-        .prepare(`
-          SELECT
-            technicians.id,
-            technicians.name,
-            technicians.specialisation,
-            technicians.assigned_report,
-            users.username,
-            users.email
-
-          FROM technicians
-
-          INNER JOIN users
-            ON technicians.user_id = users.id
-
-          WHERE technicians.id = ?
-        `)
-        .get(technicianId);
-    } else {
-      technician = db
-        .prepare(`
-          SELECT
-            technicians.id,
-            technicians.name,
-            technicians.specialisation,
-            technicians.assigned_report,
-            users.username,
-            users.email
-
-          FROM technicians
-
-          INNER JOIN users
-            ON technicians.user_id = users.id
-
-          ORDER BY technicians.id ASC
-
-          LIMIT 1
-        `)
-        .get();
-    }
-
-    return technician || null;
-  } finally {
-    db.close();
-  }
-}
-
-function getAssignedTask(technicianId) {
+function getTechnician(userId) {
   const db = openDatabase({
     readonly: true,
   });
@@ -140,28 +73,57 @@ function getAssignedTask(technicianId) {
       db
         .prepare(`
           SELECT
-            reports.id,
-            reports.description,
-            reports.location,
-            reports.image_path,
-            reports.status,
-            reports.created_at,
-
-            users.username AS submitted_by,
-            users.email AS submitter_email
+            technicians.id,
+            technicians.name,
+            technicians.specialisation,
+            technicians.assigned_report,
+            users.username,
+            users.email
 
           FROM technicians
 
-          INNER JOIN reports
-            ON technicians.assigned_report = reports.id
-
           INNER JOIN users
-            ON reports.user_id = users.id
+            ON technicians.user_id = users.id
 
-          WHERE technicians.id = ?
+          WHERE users.id = ?
         `)
-        .get(technicianId) || null
+        .get(userId) || null
     );
+  } finally {
+    db.close();
+  }
+}
+
+function getAssignedTasks(technicianId) {
+  const db = openDatabase({
+    readonly: true,
+  });
+
+  try {
+    return db
+      .prepare(`
+        SELECT
+          reports.id,
+          reports.description,
+          reports.location,
+          reports.image_path,
+          reports.status,
+          reports.created_at,
+
+          users.username AS submitted_by,
+          users.email AS submitter_email
+
+        FROM technicians
+
+        INNER JOIN reports
+          ON technicians.assigned_report = reports.id
+
+        INNER JOIN users
+          ON reports.user_id = users.id
+
+        WHERE technicians.id = ?
+      `)
+      .all(technicianId);
   } finally {
     db.close();
   }
@@ -291,26 +253,22 @@ export default async function TechnicianNotifications({
 }) {
   const params = await searchParams;
 
-  const requestedTechnicianId =
-    typeof params?.technicianId === 'string'
-      ? Number(params.technicianId)
+  const requestedUserId =
+    typeof params?.userId === 'string'
+      ? Number(params.userId)
       : null;
 
   let technician = null;
-  let assignedTask = null;
+  let assignedTasks = [];
   let error = null;
 
   try {
-    technician = getTechnician(
-      Number.isInteger(requestedTechnicianId)
-        ? requestedTechnicianId
-        : null
-    );
+    if (Number.isInteger(requestedUserId) && requestedUserId > 0) {
+      technician = getTechnician(requestedUserId);
+    }
 
     if (technician) {
-      assignedTask = getAssignedTask(
-        technician.id
-      );
+      assignedTasks = getAssignedTasks(technician.id);
     }
   } catch (databaseError) {
     console.error(
@@ -346,8 +304,8 @@ export default async function TechnicianNotifications({
           <h2>No Technician Found</h2>
 
           <p>
-            There are currently no technician
-            accounts available in the database.
+            Sign in with a technician account to
+            view your assigned notifications.
           </p>
         </section>
       )}
@@ -394,14 +352,15 @@ export default async function TechnicianNotifications({
                 </p>
               </div>
 
-              {assignedTask && (
+              {assignedTasks.length > 0 && (
                 <span className="technician-notification-count">
-                  1 New
+                  {assignedTasks.length}{' '}
+                  {assignedTasks.length === 1 ? 'New assignment' : 'New assignments'}
                 </span>
               )}
             </div>
 
-            {!assignedTask ? (
+            {assignedTasks.length === 0 ? (
               <div className="technician-empty-state">
                 <div className="technician-empty-icon">
                   ✓
@@ -416,8 +375,8 @@ export default async function TechnicianNotifications({
                   maintenance assignments.
                 </p>
               </div>
-            ) : (
-              <article className="technician-task-card">
+            ) : assignedTasks.map((assignedTask) => (
+              <article className="technician-task-card" key={assignedTask.id}>
                 <div className="technician-task-header">
                   <div>
                     <span className="technician-task-reference">
@@ -516,14 +475,14 @@ export default async function TechnicianNotifications({
                     />
 
                     <label
-                      htmlFor="technician-task-status"
+                      htmlFor={`technician-task-status-${assignedTask.id}`}
                       className="sr-only"
                     >
                       Update task status
                     </label>
 
                     <select
-                      id="technician-task-status"
+                      id={`technician-task-status-${assignedTask.id}`}
                       name="status"
                       defaultValue={
                         assignedTask.status
@@ -552,7 +511,7 @@ export default async function TechnicianNotifications({
                   </form>
                 </div>
               </article>
-            )}
+            ))}
           </section>
         </>
       )}

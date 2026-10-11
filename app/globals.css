@@ -1027,3 +1027,118 @@ a {
    /* ========================================
    END OF TECHNICIAN NOTIFICATIONS
    ======================================== */
+
+.student-notifications-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px;
+  background: #f5f7fb;
+}
+
+.student-notifications-header {
+  margin-bottom: 26px;
+}
+
+.student-notifications-eyebrow {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.student-notifications-header h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+}
+
+.student-notifications-header > p:last-child {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.student-notifications-list {
+  display: grid;
+  gap: 16px;
+}
+
+.student-notification-card,
+.student-notifications-empty {
+  padding: 22px 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.student-notification-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.student-notification-reference {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.student-notification-topline h2,
+.student-notifications-empty h2 {
+  margin: 5px 0 0;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.student-notification-status {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.student-notification-status.status-in_progress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.student-notification-status.status-resolved,
+.student-notification-status.status-closed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.student-notification-description {
+  margin: 16px 0 12px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.student-notification-date,
+.student-notifications-state {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.student-notifications-empty p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+@media (max-width: 850px) {
+  .student-notifications-page {
+    padding: 20px;
+  }
+
+  .student-notification-card,
+  .student-notifications-empty {
+    padding: 18px;
+  }
+}

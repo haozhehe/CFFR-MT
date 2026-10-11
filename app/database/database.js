@@ -80,7 +80,7 @@ export function insertReport({ userId, description, location, imagePath = null, 
 }
 
 export function getReportsForUser({ userId, role }) {
-  if (role && role !== 'student') {
+  if (role !== 'student' && role !== 'staff') {
     return db
       .prepare(
         `SELECT r.id, r.user_id AS userId, r.description, r.location, r.image_path AS imagePath,

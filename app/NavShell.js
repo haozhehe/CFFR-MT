@@ -67,6 +67,10 @@ const navigationByRole = {
       href: '/admin_maintenance/admin_dashboard',
     },
     {
+      label: 'Notifications',
+      href: '/admin_maintenance/notifications',
+    },
+    {
       label: 'Maintenance Queue',
       href: '/admin_maintenance/maintenance_queue',
     },
@@ -115,12 +119,23 @@ export default function NavShell({
   }, [pathname, isLoginRoute]);
 
   const navigationItems =
-    navigationByRole[currentUser?.role] || [];
+    (navigationByRole[currentUser?.role] || []).map((item) => {
+      if (item.href !== '/technician/notifications' || !currentUser?.id) {
+        return item;
+      }
+
+      return {
+        ...item,
+        href: `/technician/notifications?userId=${encodeURIComponent(currentUser.id)}`,
+      };
+    });
 
   const isActiveRoute = (href) => {
+    const route = href.split('?')[0];
+
     return (
-      pathname === href ||
-      pathname?.startsWith(`${href}/`)
+      pathname === route ||
+      pathname?.startsWith(`${route}/`)
     );
   };
 
