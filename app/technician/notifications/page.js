@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import { revalidatePath } from 'next/cache';
+import { ReportAttachment } from '../../_workflow/Shared.js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -439,12 +440,7 @@ export default async function TechnicianNotifications({
                   </div>
                 </div>
 
-                {assignedTask.image_path && (
-                  <div className="technician-image-note">
-                    An image was attached to
-                    this report.
-                  </div>
-                )}
+                <ReportAttachment imagePath={assignedTask.image_path} />
 
                 <div className="technician-task-actions">
                   <div>

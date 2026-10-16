@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ReportAttachment } from '../../_workflow/Shared.js';
 
 function formatStatus(status) {
   switch (status) {
@@ -137,6 +138,7 @@ export default function StudentStaffNotificationsPage() {
               </div>
 
               <p className="student-notification-description">{report.description}</p>
+              <ReportAttachment imagePath={report.imagePath} />
               <time className="student-notification-date" dateTime={report.createdAt || undefined}>
                 Submitted {formatDate(report.createdAt)}
               </time>

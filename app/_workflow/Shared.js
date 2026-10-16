@@ -24,8 +24,17 @@ export function Status({ status }) {
   return <span className={`${styles.badge} ${styles[status] || ''}`}>{STATUS_LABELS[status] || status}</span>;
 }
 
+export function ReportAttachment({ imagePath }) {
+  const photo = typeof imagePath === 'string' && /^\/uploads\/[a-zA-Z0-9._-]+\.(png|jpe?g)$/i.test(imagePath);
+  return <section className={styles.attachment} aria-label="Attached image">
+    <h3>Attached image</h3>
+    {photo
+      ? <a className={styles.link} href={imagePath} target="_blank" rel="noopener noreferrer">View attached image</a>
+      : <p className={styles.muted}>No attached image</p>}
+  </section>;
+}
+
 export function ReportDetails({ report }) {
-  const photo = typeof report.image_path === 'string' && /^\/uploads\/[a-zA-Z0-9._-]+\.(png|jpe?g)$/i.test(report.image_path);
   return <>
     <p className={styles.description}>{report.description}</p>
     <dl className={styles.details}>
@@ -33,7 +42,7 @@ export function ReportDetails({ report }) {
       {report.submitted_by && <div><dt>Reported by</dt><dd>{report.submitted_by}</dd></div>}
       {report.technician_name && <div><dt>Technician</dt><dd>{report.technician_name}</dd></div>}
     </dl>
-    {photo && <a className={styles.link} href={report.image_path} target="_blank" rel="noreferrer">View attached photo</a>}
+    <ReportAttachment imagePath={report.image_path} />
   </>;
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { validateReport, validateImage, MAX_DESCRIPTION_LENGTH } from './lib/validation';
+import { ReportAttachment } from '../../_workflow/Shared.js';
 
 function formatDate(value) {
   const date = new Date(value);
@@ -142,7 +143,7 @@ export default function SubmitFaultPage() {
         description: description.trim(),
         status: 'open',
         createdAt: new Date().toISOString(),
-        imagePath: image?.name || null,
+        imagePath: data.report?.imagePath || null,
       };
 
       setSubmittedReport(savedReport);
@@ -268,9 +269,9 @@ export default function SubmitFaultPage() {
                 </div>
                 <h3>{reportLocation(report)}</h3>
                 <p>{report.description}</p>
+                <ReportAttachment imagePath={report.imagePath} />
                 <div className="report-footer">
                   <time>{formatDate(report.createdAt)}</time>
-                  <small>{report.imagePath ? `Image: ${report.imagePath}` : 'No image'}</small>
                 </div>
               </article>
             ))}
