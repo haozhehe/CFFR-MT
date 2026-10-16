@@ -1,0 +1,85 @@
+/* These rules only apply while a student/staff or technician portal is open. */
+:global(.app-shell):has(.portal) > :global(.sidebar) > :global(.sidebar-nav):not(.sidebarMenu) {
+  display: none;
+}
+
+/* The shared tabs replace the individual page tabs; existing files stay intact. */
+.content nav[aria-label='Your reports'],
+.content nav[aria-label='Technician jobs'] {
+  display: none;
+}
+
+.sidebarMenu a[aria-current] {
+  background: #2563eb;
+  color: white;
+}
+
+.topSection {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 32px 0;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #dbe3ed;
+}
+
+.tabs a {
+  padding: 11px 14px;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.tabs a:hover {
+  background: #e2e8f0;
+}
+
+.tabs a[aria-current='page'] {
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 700;
+}
+
+.tabs a:focus-visible,
+.sidebarMenu a:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+
+.sidebarMenu a:focus-visible {
+  outline-color: #93c5fd;
+}
+
+@media (max-width: 800px) {
+  :global(.app-shell):has(.portal) > :global(.sidebar) {
+    min-height: auto;
+    padding: 20px 16px;
+  }
+
+  .sidebarMenu {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .sidebarMenu a {
+    width: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .topSection {
+    padding: 20px 14px 0;
+  }
+
+  /* Keep the existing submit form inside the narrow portal content area. */
+  .content :global(.report-page) :global(.panel),
+  .content :global(.report-page) input {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
