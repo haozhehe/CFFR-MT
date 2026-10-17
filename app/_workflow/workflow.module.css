@@ -35,6 +35,9 @@
 .details dd { margin: 0; font-size: 14px; color: #1e293b; }
 .attachment { margin-top: 20px; }
 .attachment h3 { margin: 0 0 8px; font-size: 14px; color: #64748b; }
+.adminNote { margin: 20px 0; padding: 14px 16px; border-left: 4px solid #2563eb; border-radius: 6px; background: #eff6ff; }
+.adminNote h3 { margin: 0 0 6px; color: #1e40af; font-size: 14px; }
+.adminNote p { margin: 0; color: #1e293b; line-height: 1.5; white-space: pre-wrap; }
 .progress { display: flex; flex-wrap: wrap; padding: 0; gap: 8px; list-style: none; margin: 24px 0; }
 .progress li { padding: 8px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #475569; }
 .progress li[aria-current='step'] { border-color: #1d4ed8; background: #dbeafe; color: #1e40af; font-weight: 700; }

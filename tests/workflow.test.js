@@ -93,6 +93,21 @@ test('existing assignment and resolution SQL preserves the technician completion
   assert.equal(technicianData(db, 6).completed.length, 0);
 });
 
+test('admin notes are returned to assigned technicians, not student or staff report data', (t) => {
+  const db = database(t);
+  assign(db);
+  db.prepare('INSERT INTO report_notes (report_id, note) VALUES (?, ?)')
+    .run(101, 'Check the isolation switch before repair.');
+
+  const technicianJob = technicianData(db, 5).assigned[0];
+  const studentReport = studentData(db, 2).reports[0];
+  const staffReport = studentData(db, 4).reports[0];
+
+  assert.equal(technicianJob.admin_note, 'Check the isolation switch before repair.');
+  assert.equal(Object.hasOwn(studentReport, 'admin_note'), false);
+  assert.equal(Object.hasOwn(staffReport, 'admin_note'), false);
+});
+
 test('reassignment does not give completion credit to the previous technician', (t) => {
   const db = database(t);
   assign(db);

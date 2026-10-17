@@ -37,6 +37,10 @@ export default function JobBoard({ completed = false }) {
         {visibleJobs.map((job) => <article className={styles.card} key={job.job_id || job.id}>
           <ReportHeading report={job} status={completed ? job.completed_status : job.status} />
           <ReportDetails report={job} />
+          {job.admin_note && <section className={styles.adminNote} aria-label="Admin note">
+            <h3>Admin note</h3>
+            <p>{job.admin_note}</p>
+          </section>}
           <dl className={styles.details}>
             <div><dt>Assigned</dt><dd>{formatDate(job.assigned_at)}</dd></div>
             {completed && <div><dt>Completed</dt><dd>{formatDate(job.completed_at)}</dd></div>}

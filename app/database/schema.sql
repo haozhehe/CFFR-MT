@@ -27,6 +27,13 @@ CREATE TABLE IF NOT EXISTS technicians (
     FOREIGN KEY (assigned_report) REFERENCES reports(id)
 );
 
+CREATE TABLE IF NOT EXISTS report_notes (
+    report_id INTEGER PRIMARY KEY,
+    note TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
+);
+
 INSERT OR IGNORE INTO users (id, username, email, password_hash, role)
 VALUES (
     1,

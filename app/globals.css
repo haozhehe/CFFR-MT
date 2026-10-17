@@ -700,6 +700,38 @@ a {
   font-size: 11px;
 }
 
+.maintenance-note-cell {
+  min-width: 210px;
+}
+
+.maintenance-note-form {
+  display: grid;
+  gap: 6px;
+}
+
+.maintenance-note-form textarea {
+  width: 100%;
+  min-width: 190px;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  color: #334155;
+  font: inherit;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.maintenance-note-delete-button {
+  margin-top: 6px;
+  padding: 5px 8px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 11px;
+  cursor: pointer;
+}
+
 .maintenance-small-button {
   padding: 6px 10px;
   background: #eff6ff;

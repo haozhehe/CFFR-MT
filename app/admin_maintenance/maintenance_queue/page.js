@@ -1,6 +1,9 @@
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
+import { openWorkflowDatabase } from '../../_workflow/database.js';
+import { currentUser } from '../../_workflow/session.js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,8 +23,42 @@ const VALID_STATUSES = [
   'closed',
 ];
 
+const MAX_NOTE_LENGTH = 2000;
+
 function openDatabase(options = {}) {
   return new Database(DATABASE_PATH, options);
+}
+
+function ensureReportNotesTable() {
+  const db = openDatabase();
+
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS report_notes (
+        report_id INTEGER PRIMARY KEY,
+        note TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
+      )
+    `);
+  } finally {
+    db.close();
+  }
+}
+
+async function requireAdmin() {
+  const requestHeaders = await headers();
+  const db = openWorkflowDatabase();
+
+  try {
+    const user = currentUser(db, { headers: requestHeaders });
+
+    if (user?.role !== 'admin') {
+      throw new Error('Only administrators can manage report notes.');
+    }
+  } finally {
+    db.close();
+  }
 }
 
 function formatStatus(status) {
@@ -65,6 +102,8 @@ function formatDate(dateValue) {
 }
 
 function getMaintenanceQueue(search, status) {
+  ensureReportNotesTable();
+
   const db = openDatabase({
     readonly: true,
   });
@@ -78,6 +117,7 @@ function getMaintenanceQueue(search, status) {
         reports.image_path,
         reports.status,
         reports.created_at,
+        COALESCE(report_notes.note, '') AS admin_note,
 
         users.id AS user_id,
         users.username,
@@ -95,6 +135,9 @@ function getMaintenanceQueue(search, status) {
 
       LEFT JOIN technicians
         ON technicians.assigned_report = reports.id
+
+      LEFT JOIN report_notes
+        ON report_notes.report_id = reports.id
 
       WHERE 1 = 1
     `;
@@ -407,6 +450,87 @@ async function updateReportStatus(formData) {
   );
 }
 
+async function saveReportNote(formData) {
+  'use server';
+
+  await requireAdmin();
+
+  const reportId = Number(formData.get('reportId'));
+  const note = formData.get('note');
+
+  if (
+    !Number.isSafeInteger(reportId) ||
+    reportId <= 0 ||
+    typeof note !== 'string' ||
+    note.length > MAX_NOTE_LENGTH
+  ) {
+    throw new Error('Invalid report note.');
+  }
+
+  const trimmedNote = note.trim();
+  ensureReportNotesTable();
+  const db = openDatabase();
+
+  try {
+    const report = db
+      .prepare('SELECT id FROM reports WHERE id = ?')
+      .get(reportId);
+
+    if (!report) {
+      throw new Error('Report not found.');
+    }
+
+    if (trimmedNote) {
+      db.prepare(`
+        INSERT INTO report_notes (report_id, note, updated_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(report_id) DO UPDATE SET
+          note = excluded.note,
+          updated_at = CURRENT_TIMESTAMP
+      `).run(reportId, trimmedNote);
+    } else {
+      db.prepare('DELETE FROM report_notes WHERE report_id = ?')
+        .run(reportId);
+    }
+  } finally {
+    db.close();
+  }
+
+  revalidatePath('/admin_maintenance/maintenance_queue');
+}
+
+async function deleteReportNote(formData) {
+  'use server';
+
+  await requireAdmin();
+
+  const reportId = Number(formData.get('reportId'));
+
+  if (!Number.isSafeInteger(reportId) || reportId <= 0) {
+    throw new Error('Invalid report.');
+  }
+
+  ensureReportNotesTable();
+  const db = openDatabase();
+
+  try {
+    const report = db
+      .prepare('SELECT id FROM reports WHERE id = ?')
+      .get(reportId);
+
+    if (!report) {
+      throw new Error('Report not found.');
+    }
+
+    db.prepare('DELETE FROM report_notes WHERE report_id = ?')
+      .run(reportId);
+  } finally {
+    db.close();
+  }
+
+  revalidatePath('/admin_maintenance/maintenance_queue');
+}
+
 export default async function MaintenanceQueue({
   searchParams,
 }) {
@@ -611,6 +735,7 @@ export default async function MaintenanceQueue({
                   <th>Submitted By</th>
                   <th>Location</th>
                   <th>Description</th>
+                  <th>Admin Notes</th>
                   <th>Status</th>
                   <th>Technician</th>
                   <th>Created</th>
@@ -651,6 +776,57 @@ export default async function MaintenanceQueue({
 
                       <td className="admin-description-cell">
                         {report.description}
+                      </td>
+
+                      <td>
+                        <div className="maintenance-note-cell">
+                          <form
+                            action={saveReportNote}
+                            className="maintenance-note-form"
+                          >
+                            <input
+                              type="hidden"
+                              name="reportId"
+                              value={report.id}
+                            />
+                            <label
+                              htmlFor={`note-${report.id}`}
+                              className="sr-only"
+                            >
+                              Admin note for report {report.id}
+                            </label>
+                            <textarea
+                              id={`note-${report.id}`}
+                              name="note"
+                              defaultValue={report.admin_note}
+                              maxLength={MAX_NOTE_LENGTH}
+                              rows={3}
+                              placeholder="Add an internal note"
+                            />
+                            <button
+                              type="submit"
+                              className="maintenance-small-button"
+                            >
+                              Save note
+                            </button>
+                          </form>
+
+                          {report.admin_note && (
+                            <form action={deleteReportNote}>
+                              <input
+                                type="hidden"
+                                name="reportId"
+                                value={report.id}
+                              />
+                              <button
+                                type="submit"
+                                className="maintenance-note-delete-button"
+                              >
+                                Delete note
+                              </button>
+                            </form>
+                          )}
+                        </div>
                       </td>
 
                       <td>
