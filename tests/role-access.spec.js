@@ -26,24 +26,30 @@ test(
     );
 
     await expect(
-      page.getByRole('link', { name: 'Dashboard' })
+      page.getByRole('link', {
+        name: 'Dashboard',
+        exact: true,
+      })
     ).toBeVisible();
 
     await expect(
-      page.getByRole('link', { name: 'Submit a Fault' })
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole('link', { name: 'My Reports' })
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole('link', { name: 'Notifications' })
+      page.getByRole('link', {
+        name: 'Fault reports',
+        exact: true,
+      })
     ).toBeVisible();
 
     await expect(
       page.getByRole('link', {
         name: 'Maintenance Queue',
+        exact: true,
+      })
+    ).not.toBeVisible();
+
+    await expect(
+      page.getByRole('link', {
+        name: 'Admin',
+        exact: true,
       })
     ).not.toBeVisible();
   }
