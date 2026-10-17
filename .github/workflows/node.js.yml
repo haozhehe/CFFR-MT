@@ -29,8 +29,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Playwright tests
-        run: npx playwright test
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Build project
         run: npm run build
@@ -41,4 +41,4 @@ jobs:
           npx --yes wait-on http://127.0.0.1:3000
 
       - name: Run Playwright tests
-        run: npx playwright test --project=chromium
+        run: npx playwright test --workers=1
